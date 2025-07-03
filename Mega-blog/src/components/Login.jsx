@@ -12,17 +12,18 @@ function Login() {
     const [error, setError] = useState("")
     const [loading, setLoading]=useState(false)
     
-    const login = async (data) => {
+  const login = async (data) => {
+    console.log("Form submitted:", data);
         setError("")
         setLoading(true)
         try {
             const session = await authService.login(data)
             if (session) {
                 const userData = await authService.getCurrentUser()
-                if (userData) dispatch(authLogin(userData))
+                if (userData){ dispatch(authLogin(userData))
                     localStorage.setItem("userData", JSON.stringify(userData));
                     localStorage.setItem("authStatus", "true");
-                navigate("/")
+                navigate("/")}
             }
         } catch (error) {
             console.error("Login error:",error)
@@ -78,9 +79,8 @@ function Login() {
                   required: true,
                 })}
               />
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Signing in..." : "Sign in"}{" "}
-                
+              <Button type="submit" disabled={loading}>
+                Sign in
               </Button>
             </div>
           </form>

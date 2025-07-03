@@ -12,19 +12,25 @@ function Signup() {
     const {register,handleSubmit}=useForm()
     
     const create = async (data) => {
-        setError("")
-            try {
-                const userData = await authService.createAccount(data) 
-                if (userData) {
-                    const userData = await authService.getCurrentUser()
-                    if (userData) dispatch(login(userData));
-                    navigate("/")
-             }   
-            } catch (error) {
-                setError(error.message)
-            }
-        
-    }   
+      console.log("🧪 Form submitted with data:", data); // Add this line
+      setError("");
+      try {
+        const userData = await authService.createAccount(data);
+        console.log("✅ Account created:", userData);
+
+        if (userData) {
+          const currentUser = await authService.getCurrentUser();
+          if (currentUser) {
+            dispatch(login(currentUser));
+            navigate("/");
+          }
+        }
+      } catch (error) {
+        setError(error.message);
+        console.error("❌ Signup error:", error.message);
+      }
+    };
+       
   return (
     <div className="flex items-center jsutify-center">
       <div
