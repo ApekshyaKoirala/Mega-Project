@@ -5,42 +5,53 @@ import appwriteService from "../../appwrite/config"
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
-function PostForm({post}) {
+function PostForm({ post }) {
+  console.log("PostForm rendered");
+
     const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
         defaultValues: {
             title: post ?.title || '',
             slug: post?.slug || '',
-            content: post?.content || '',
+            contents: post?.content || '',
             status:post ?.status || ''
         }
     })
     const navigate = useNavigate()
-    const userData = useSelector(state => state.user.userData)
+    const userData = useSelector((state) => state.auth.userData)
     
-    const submit = async (data) => {
+  const submit = async (data) => {
+    console.log("📤 Form submission started...");
+    console.log("🧾 Form data:", data);
+    console.log(userData)
+    if (!userData || !userData.$id) {
+      console.error("User not logged in or userData missing!");
+      return;
+    }
         if (post) {
-            data.image[0] ? appwriteService.uploadFile(data.image[0]) : null
+            const file=data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null
             
             if (file) {
                 appwriteService.deleteFile(post.featuredImage)
             }
-            const bdPost = await appwriteService.updatePost(post.$id, {
-                ...data,
-                featuredImage: file ? file.$id : undefined,
-                if(bdPost) {
-                    navigate(`/post/${bdPost.$id}`)
-                }
-            })
+          const bdPost = await appwriteService.updatePost(post.$id, {
+            ...data,
+            featuredImage: file ? file.$id : undefined,
+               
+          });
+          if (bdPost) {
+            navigate(`/post/${bdPost.$id}`);
+          }
         }
         else {
             const file = await appwriteService.uploadFile(data.image[0])
             if (file) {
                 const fileId = file.$id
                 data.featuredImage = fileId
-                const dbPost=await appwriteService.createPost({
-                    ...data,
-                    userId:userData.$id,
-                })
+                const dbPost = await appwriteService.createPost({
+                  ...data,
+                  featuredImage: file ? file.$id : undefined,
+                  userid: userData?.$id,
+                });
                 if (dbPost) {
                     navigate(`/post/${dbPost.$id}`)
                 }
@@ -70,7 +81,9 @@ function PostForm({post}) {
         }
     },[watch,slugTransform,setValue])
   return (
-    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
+    <form onSubmit={handleSubmit(submit, (errors) => {
+      console.log("❌ Validation errors",errors);
+    })} className="flex flex-wrap">
       <div className="w-2/3 px-2">
         <Input
           label="Title :"
@@ -91,9 +104,9 @@ function PostForm({post}) {
         />
         <RTE
           label="Content :"
-          name="content"
+          name="contents"
           control={control}
-          defaultValue={getValues("content")}
+          defaultValue={getValues("contents")}
         />
       </div>
       <div className="w-1/3 px-2">
@@ -123,6 +136,7 @@ function PostForm({post}) {
           type="submit"
           bgColor={post ? "bg-green-500" : undefined}
           className="w-full"
+          
         >
           {post ? "Update" : "Submit"}
         </Button>

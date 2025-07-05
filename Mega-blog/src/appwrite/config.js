@@ -14,18 +14,19 @@ export class AppwriteService {
     this.bucket = new Storage(this.client);
   }
 
-  async createPost({ title, slug, content, featuredImage, status, userId }) {
+  async createPost({ title, contents, featuredImage, status, userid }) {
     try {
       return await this.databases.createDocument(
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
-        slug,
+        ID.unique(),
         {
           title,
-          content,
+          contents,
           featuredImage,
           status,
-          userId,
+          userid,
+          slug
         }
       );
     } catch (error) {
@@ -41,7 +42,7 @@ export class AppwriteService {
         slug,
         {
           title,
-          content,
+          contents:content,
           featuredImage,
           status,
         }
@@ -67,14 +68,14 @@ export class AppwriteService {
 
   async getPost(slug) {
     try {
-      return await this.databases.getDocument(
+      return await this.databases.listDocuments(
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
-        slug
+        [Query.equal("slug", slug)]
       );
       return true;
     } catch (error) {
-      console.log("Appwrite service:: getPose::error", error);
+      console.log("Appwrite service:: getPost::error", error);
       return false;
     }
   }
